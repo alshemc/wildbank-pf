@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+    <ui:composition>
+
+        <p:dialog id="AccountTransactionRemitDlg" widgetVar="AccountTransactionRemitDialog" modal="true" resizable="false" appendTo="@(body)" header="#{i18n['operations.create.remittance']}">
+            <h:form id="AccountTransactionRemitForm">
+                <h:panelGroup id="display">
+                    <p:panelGrid columns="2" rendered="#{accountRemittanceBean.activeAccount != null}">
+                                                <p:outputLabel for="fromClient" value="#{i18n['client']} #{i18n['app.source']}"/>
+                                                <p:selectOneMenu id="fromClient" value="#{accountRemittanceBean.item.clientNameFrom}"
+                                                                 effect="fold" editable="false" converter="clientConverter">
+                                                    <f:selectItem itemLabel="#{accountRemittanceBean.activeAccount.activeClient.item.clientName}"
+                                                                  itemValue="#{accountRemittanceBean.activeAccount.activeClient.item}"/>
+                                                </p:selectOneMenu>
+                                                
+                                                <p:outputLabel for="fromClientAccount" value="#{i18n['account']} #{i18n['app.source']}"/>
+                                                <p:selectOneMenu id="fromClientAccount" value="#{accountRemittanceBean.item.accountFrom}"
+                                                                 effect="fold" editable="false"
+                                                                 required="true" converter="accountConverter" binding="#{fromAccount}">
+                                                    <f:selectItem itemLabel="#{clientAccountsBean.selectedAccount.accountCode}"
+                                                                  itemValue="#{clientAccountsBean.selectedAccount}"/>
+                                                </p:selectOneMenu>
+
+                                                <p:outputLabel for="accountBalance" value="#{i18n['account.balance']}"/>
+                                                <p:outputLabel id="accountBalance" value="#{clientAccountsBean.selectedAccount.balance}"/>
+
+                                                <p:outputLabel for="toClient" value="#{i18n['client']} #{i18n['app.receiver']}"/>
+                                                <p:selectOneMenu id="toClient" value="#{accountRemittanceBean.destinationClient}"
+                                                                 effect="fold" editable="false" converter="clientConverter">
+                                                    <p:ajax listener="#{accountRemittanceBean.onClientChange}" update="toClientAccount"/>
+                                                    <f:selectItem itemLabel="#{i18n['client']}"
+                                                                  itemValue="" noSelectionOption="true"/>
+                                                    <f:selectItems value="#{accountRemittanceBean.activeAccount.activeClient.items}" var="toclient"
+                                                                   itemLabel="#{toclient.clientName}" itemValue="#{toclient}"/>
+                                                </p:selectOneMenu>
+
+                                                <p:outputLabel for="toClientAccount" value="#{i18n['account']} #{i18n['app.receiver']}"/>
+                                                <p:selectOneMenu id="toClientAccount" value="#{accountRemittanceBean.item.accountTo}"
+                                                                 effect="fold" editable="false"
+                                                                 required="true" converter="accountConverter">
+                                                    <f:selectItem itemLabel="#{i18n['account']}"
+                                                                  itemValue="" noSelectionOption="true"/>
+                                                    <f:selectItems value="#{accountRemittanceBean.destinationAccounts}" var="toaccount"
+                                                                   itemLabel="#{toaccount.accountCode}" itemValue="#{toaccount}"/>
+                                                </p:selectOneMenu>
+
+                                                <p:outputLabel for="dateTrInput" value="#{i18n['account.transaction.date']}"/>
+                                                <p:calendar id="dateTrInput" value="#{accountRemittanceBean.activeAccount.nowDate}"
+                                                            disabled="true">
+                                                    <f:convertDateTime pattern="dd.MM.yyyy"/>
+                                                </p:calendar>
+
+                                                <p:outputLabel for="valueTrInput" value="#{i18n['account.transaction.value']}"/>
+                                                <p:inputText id="valueTrInput" required="true" requiredMessage="#{i18n['message.value']}"
+                                                             value="#{accountRemittanceBean.item.trValue}" validator="#{accountRemittanceBean.validateTrValue}">
+                                                    <f:convertNumber type="currency" pattern="#0.00" 
+                                                                     currencySymbol="RUB " currencyCode="RUB"
+                                                                     locale="#{facesContext.viewRoot.locale}"
+                                                                     minFractionDigits="2" /> <!---->
+                                                    <!--f:validateDoubleRange maximum="0"/-->
+                                                    <f:attribute name="fromAccountBalance" value="#{fromAccount.value}" />
+                                                </p:inputText>
+                    </p:panelGrid>
+                    <p:commandButton actionListener="#{accountRemittanceBean.create}" value="#{i18n['button.save']}"
+                                     update="display,:ClientAccountsListForm:accounts,:growl"
+                                     oncomplete="handleSubmit(args,'AccountTransactionRemitDialog');"/>
+                    <p:commandButton value="#{i18n['button.cancel']}" onclick="AccountTransactionRemitDialog.hide()"/>
+                </h:panelGroup>
+            </h:form>
+        </p:dialog>
+
+    </ui:composition>
+</html>

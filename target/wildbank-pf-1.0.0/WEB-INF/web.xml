@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app
+	version="3.1"
+	xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+	xmlns:xml="http://www.w3.org/XML/1998/namespace"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+>
+
+	<!-- WELCOME FILES -->
+	<welcome-file-list>
+		<welcome-file>index.xhtml</welcome-file>
+	</welcome-file-list>
+
+	<!-- JSF FACES SERVLET -->
+	<servlet>
+		<servlet-name>Faces Servlet</servlet-name>
+		<servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<!-- JSF FACES SERVLET MAPPING -->
+	<servlet-mapping>
+		<servlet-name>Faces Servlet</servlet-name>
+		<url-pattern>*.xhtml</url-pattern>
+	</servlet-mapping>
+
+	<!-- FACES CONFIGURE LISTENER - MOJARRA REQUIRED -->
+	<listener>
+		<listener-class>com.sun.faces.config.ConfigureListener</listener-class>
+	</listener>
+
+	<!-- SPRING CONTEXT LOADER LISTENER -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>
+			/WEB-INF/application-context.xml
+			/WEB-INF/database/database-context.xml
+		</param-value>
+	</context-param>
+	<!-- SPRING BEAN PROFILES -->
+	<!-- PROFILE 'hibernate' ACTIVATES HIBERNATE AS JPA PROVIDER -->
+	<!-- PROFILE 'eclipselink' ACTIVATES ECLIPSELINK AS JPA PROVIDER -->
+	<!-- OTHER PROFILES CAN BE ACTIVATED USING COMMA, LIKE THIS: 'p1,p2,p3' -->
+	<context-param>
+		<param-name>spring.profiles.active</param-name>
+		<param-value>hibernate</param-value>
+	</context-param>
+
+	<!-- PRIMEFACES THEME -->
+	<context-param>
+		<param-name>primefaces.THEME</param-name>
+		<param-value>bootstrap</param-value><!---->
+	</context-param>
+
+</web-app>

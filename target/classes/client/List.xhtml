@@ -1,0 +1,260 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+>
+<f:metadata>
+    <f:event type="preRenderView" listener="#{clientBean.prepareList}"/>
+</f:metadata>
+
+<ui:composition template="/template.xhtml">
+        <ui:define name="title">
+            <h:outputText value="##{i18n['clients']}"></h:outputText>
+        </ui:define>
+    <ui:define name="body">
+        <h:panelGroup id="wrapper" layout="block" styleClass="wrapper">
+            <h:form id="form">
+                <h:panelGroup id="viewPanelGroup" layout="block" rendered="#{clientBean.state eq 'READ'}" styleClass="ui-grid ui-grid-responsive">
+                    <div class="ui-grid-row">
+                        <div class="ui-grid-col-12">
+                            <p:panel id="viewPanel" header="#{i18n['clients']}">
+                                <h:panelGroup layout="block" style="margin: 0 0 0.5em 0;">
+                                    <p:commandButton
+                                        id="buttonNew"
+                                        value="#{i18n['button.new']}"
+                                        action="#{clientBean.clearItem}"
+                                        icon="ui-icon-plus"
+                                        update="@form"
+                                        resetValues="true">
+                                        <f:setPropertyActionListener target="#{clientBean.state}" value="CREATE"/>
+                                    </p:commandButton>
+                                </h:panelGroup>
+                                <p:dataTable id="mainDataTable" value="#{clientBean.items}" var="item">
+                                    <p:column headerText="#" width="30" style="text-align: center;">
+                                        <h:outputText value="#{item.clientId}" />
+                                    </p:column>
+                                    <p:column headerText="#{i18n['client.code']}" width="60">
+                                        <h:outputText value="#{item.clientCode}" />
+                                    </p:column>
+                                    <p:column headerText="#{i18n['client.name']}">
+                                        <!--<h:link outcome="/account/ClientList.xhtml?faces-redirect=true&param;sclient=#{item}" value="#{item.clientName}" />-->
+                                        <h:commandLink action="/account/ClientAccounts.xhtml" value="#{item.clientName}">
+                                            <f:param name="client_id" value="#{item.clientId}"/>
+                                            <f:setPropertyActionListener target="#{clientBean.item}" value="#{item}"/>
+                                            <!--<f:setPropertyActionListener target="actionListener" value="{clientBean.clientViewListener()}"/>-->
+                                        </h:commandLink>
+                                    </p:column>
+                                    <p:column headerText="#{i18n['client.address']}" style="text-align: center;">
+                                        <h:outputText value="#{item.clientAddress}">
+                                             <!--<f:convertNumber locale="#{facesContext.viewRoot.locale}" />-->
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column headerText="#{i18n['client.birthdate']}" style="text-align: center;">
+                                        <h:outputText value="#{item.clientBirthdate}">
+                                            <f:convertDateTime pattern="dd.MM.yyyy" />
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column headerText="#{i18n['client.date']}" style="text-align: center;">
+                                        <h:outputText value="#{item.clientDate}">
+                                            <f:convertDateTime pattern="dd.MM.yyyy" />
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column headerText="#{i18n['account.balance']}" style="text-align: center;">
+                                        <h:outputText value="#{item.currentBalance}"/>
+                                    </p:column>
+                                    <p:column headerText="#{i18n['operations']}" width="70" style="text-align: center;">
+                                        <p:commandButton
+                                            id="buttonOperationEdit"
+                                            icon="ui-icon-pencil"
+                                            process="@this"
+                                            update="@form"
+                                            resetValues="true"
+                                            immediate="true">
+                                            <f:setPropertyActionListener target="#{clientBean.item}" value="#{item}"/>
+                                            <f:setPropertyActionListener target="#{clientBean.state}" value="UPDATE"/>
+                                        </p:commandButton>
+                                        <p:commandButton
+                                            id="buttonOperationRemove"
+                                            icon="ui-icon-trash"
+                                            process="@this"
+                                            update="@form"
+                                            immediate="true">
+                                            <f:setPropertyActionListener target="#{clientBean.item}" value="#{item}"/>
+                                            <f:setPropertyActionListener target="#{clientBean.state}" value="DELETE"/>
+                                        </p:commandButton>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:panel>
+                        </div>
+                    </div>
+                </h:panelGroup>
+                <h:panelGroup id="editPanelGroup" layout="block" rendered="#{clientBean.state eq 'CREATE' or clientBean.state eq 'UPDATE'}" styleClass="ui-grid ui-grid-responsive">
+                    <div class="ui-grid-row">
+                        <div class="ui-grid-col-12">
+                            <p:panel id="editPanel">
+                                    
+                                <f:facet name="header">
+                                    <h:outputText value="#{i18n['operations.create']} #{i18n['client']}"
+                                                  rendered="#{clientBean.state eq 'CREATE'}"/>
+                                    <h:outputText value="#{i18n['operations.update']} #{i18n['client']}"
+                                                  rendered="#{clientBean.state eq 'UPDATE'}"/>
+                                </f:facet>
+                                <div class="ui-grid-form ui-grid ui-grid-responsive">
+                                    <div class="ui-grid-row">
+                                        <div class="ui-grid-col-3">
+                                            <p:outputLabel for="codeInput" value="#{i18n['client.code']}"/>
+                                            <p:inputText id="codeInput"
+                                                         value="#{clientBean.item.clientCode}"
+                                                         maxlength="10"
+                                                         required="true">
+                                                <f:validateLength minimum="2" />
+                                                <f:convertNumber />
+                                            </p:inputText>
+                                        </div>
+                                        <div class="ui-grid-col-6">
+                                            <p:outputLabel for="nameInput" value="#{i18n['client.name']}"/>
+                                            <p:inputText id="nameInput"
+                                                         value="#{clientBean.item.clientName}"
+                                                         maxlength="256"
+                                                         required="true">
+                                                <f:validateLength minimum="2" />
+                                            </p:inputText>
+                                        </div>
+                                        <div class="ui-grid-col-3">
+                                            <p:outputLabel for="addressInput" value="#{i18n['client.address']}"/>
+                                            <p:inputText id="addressInput"
+                                                         value="#{clientBean.item.clientAddress}"
+                                                         maxlength="512"/>
+                                        </div>
+                                        <div class="ui-grid-col-3">
+                                            <p:outputLabel for="birthdateInput" value="#{i18n['client.birthdate']}"/>
+                                            <p:calendar id="birthdateInput" value="#{clientBean.item.clientBirthdate}" locale="#{i18n['app.locale']}"
+                                                        showOn="button" navigator="true" pattern="dd.MM.yyyy" mask="true"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <f:facet name="footer">
+                                                <p:commandButton value="#{i18n['button.cancel']}"
+                                                                 icon="ui-icon-close"
+                                                                 process="@this"
+                                                                 update="@form"
+                                                                 immediate="true"
+                                                                 styleClass="buttonCancel"
+                                                                 style="float: left;">
+                                                    <f:setPropertyActionListener target="#{clientBean.state}" value="READ"/>
+                                                </p:commandButton>
+                                                <p:commandButton id="buttonCreate"
+                                                                 value="#{i18n['button.save']}"
+                                                                 action="#{clientBean.create}"
+                                                                 icon="ui-icon-check"
+                                                                 rendered="#{clientBean.state eq 'CREATE'}"
+                                                                 process="@form"
+                                                                 update="@form"
+                                                                 style="float: right;"
+                                                                 >
+                                                    <f:setPropertyActionListener target="#{clientBean.state}" value="READ"/>
+                                                </p:commandButton>
+                                                <p:commandButton id="buttonUpdate"
+                                                                 value="#{i18n['button.update']}"
+                                                                 action="#{clientBean.update}"
+                                                                 icon="ui-icon-check"
+                                                                 rendered="#{clientBean.state eq 'UPDATE'}"
+                                                                 process="@form"
+                                                                 update="@form"
+                                                                 style="float: right;">
+                                                    <f:setPropertyActionListener target="#{clientBean.state}" value="READ"/>
+                                                </p:commandButton>
+                                    <p:defaultCommand target="#{(clientBean.item.clientId eq null) ? 'buttonCreate' : 'buttonUpdate'}"/>
+                                    <div style="clear: both;"></div>
+                                </f:facet>
+                            </p:panel>
+                        </div>
+                    </div>
+                    <div class="ui-grid-row">
+                        <div class="ui-grid-col-2"> </div>
+                        <div class="ui-grid-col-8">
+                            <p:graphicImage value="../resources/Gil-Elvgren.jpg" 
+                                                    style=" max-width: 100%; height: auto; "/>
+                        </div>
+                        <div class="ui-grid-col-2"> </div>
+                    </div>
+                    <div class="ui-grid-row">
+                        <div class="ui-grid-col-6" style="text-align: center">
+                             Задумчиво пріѣзжій глядѣлъ на тихій садъ; <br/>
+                             Впивалъ онъ полной грудью цвѣточный ароматъ;<br/>
+                             Съ душистому левкою свое лицо склоняя,<br/>
+                             И, взоромъ любопытнымъ среди аллей блуждая,<br/>
+                             На слѣдъ безвѣстной ножки онъ очи перенесъ.<br/>
+                             Но чей же онъ? невольно рождался въ немъ вопросъ.<br/>
+                             Взоръ поднялъ: вдругъ мелькнула паненка надъ заборомъ,<br/>
+                             Полуприкрыта бѣлымъ, простымъ своимъ уборомъ,<br/>
+                             Что стройный станъ лишь только до груди закрывалъ<br/>
+                        </div>
+                        <div class="ui-grid-col-6" style="text-align: center">
+                             И прелесть бѣлой шеи, и плечи обнажалъ.<br/>
+                             Лишь дѣвочка литвинка такъ можетъ одѣваться,<br/>
+                             Но вѣрно не захочетъ мужчинѣ показаться.<br/>
+                             Хоть не было при этомъ вблизи кого-нибудь,<br/>
+                             Но ручкой прикрывала она стыдливо грудь.<br/>
+                             Вся въ бѣлыхъ папильёткахъ головка завитая<br/>
+                             Свѣтилась въ блескѣ солнца, въ лучахъ его играя,<br/>
+                             И завитки короной сверкали въ блескѣ томъ,<br/>
+                             Какъ вѣнчикъ лучезарный на образѣ святомъ.
+                        </div>
+                    </div>
+                </h:panelGroup>
+                <h:panelGroup id="removePanelGroup"
+                              layout="block"
+                              rendered="#{clientBean.state eq 'DELETE'}"
+                              styleClass="ui-grid ui-grid-responsive">
+                    <div class="ui-grid-row">
+                        <div class="ui-grid-col-12">
+                            <p:panel id="removePanel"
+                                     header="#{i18n['operations.delete']} #{i18n['client']}">
+                                <div class="ui-grid-form ui-grid ui-grid-responsive">
+                                    <div class="ui-grid-row">
+                                        <div class="ui-grid-col-12">
+                                            <h3>
+                                                <h:outputFormat value="#{i18n['operations.delete.areYouSure']}">
+                                                    <f:param value="#{clientBean.item.clientName}" />
+                                                </h:outputFormat>
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <f:facet name="footer">
+                                    <p:commandButton value="#{i18n['button.cancel']}"
+                                                     icon="ui-icon-close"
+                                                     process="@this"
+                                                     update="@form"
+                                                     immediate="true"
+                                                     styleClass="buttonCancel"
+                                                     style="float: left;">
+                                        <f:setPropertyActionListener target="#{clientBean.state}" value="READ"/>
+                                    </p:commandButton>
+                                    <p:commandButton id="buttonRemove"
+                                                     value="#{i18n['button.remove']}"
+                                                     action="#{clientBean.delete}"
+                                                     icon="ui-icon-trash"
+                                                     process="@this"
+                                                     update="@form"
+                                                     style="float: right;" validateClient="true">
+                                        <f:setPropertyActionListener target="#{clientBean.state}" value="READ"/>
+                                    </p:commandButton>
+                                    <div style="clear: both;"></div>
+                                </f:facet>
+                            </p:panel>
+                        </div>
+                    </div>
+                </h:panelGroup>
+            </h:form>
+        </h:panelGroup>
+    </ui:define>
+</ui:composition>
+
+</html>

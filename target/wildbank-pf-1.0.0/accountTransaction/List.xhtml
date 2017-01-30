@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+>
+
+<ui:composition template="/template.xhtml">
+        <ui:define name="title">
+            <h:outputText value="#{i18n['account.transactions']}"></h:outputText>
+        </ui:define>
+    <ui:define name="body">
+        <h:panelGroup id="wrapper" layout="block" styleClass="wrapper">
+            <h:form id="form">
+                <h:panelGroup id="viewPanelGroup" layout="block" rendered="#{accountTransactionBean.state eq 'READ'}" styleClass="ui-grid ui-grid-responsive">
+                    <div class="ui-grid-row">
+                        <div class="ui-grid-col-12">
+                            <p:panel id="viewtrPanel" header="#{i18n['account.transactions']}">
+                                <p:dataTable value="#{accountTransactionBean.items}" var="item" widgetVar="accountTrTable"
+                                             emptyMessage="#{i18n['account.transaction.list.empty']}" > <!--filteredValue="{accountTransactionBean.filteredTransactions}"-->
+                                    <f:facet name="header">
+                                        <p:outputPanel>
+                                            <div class="ui-grid ui-grid-responsive"> <div class="ui-grid-row">
+                                            <div class="ui-grid-col-3">
+                                                <p:selectBooleanCheckbox value="#{accountTransactionBean.filterCheckFrom}" />
+                                                <p:outputLabel for="filterDateFrom" value="#{i18n['filter.date.from']}" style="font-weight:bold"/>
+                                                <p:calendar id="filterDateFrom" value="#{accountTransactionBean.filterDateFrom}"
+                                                            pattern="dd.MM.yyyy" mask="true" required="#{accountTransactionBean.filterCheckFrom}"/>
+                                            </div>
+                                            <div class="ui-grid-col-3">
+                                                <p:selectBooleanCheckbox value="#{accountTransactionBean.filterCheckTo}" />
+                                                <p:outputLabel for="filterDateTo" value="#{i18n['filter.date.to']}" style="font-weight:bold"/>
+                                                <p:calendar id="filterDateTo" value="#{accountTransactionBean.filterDateTo}" 
+                                                            pattern="dd.MM.yyyy" mask="true" required="#{accountTransactionBean.filterCheckTo}"/>
+                                            </div>
+                                            <div class="ui-grid-col-3">
+                                                <p:selectBooleanCheckbox value="#{accountTransactionBean.filterClientBool}" />
+                                                <p:selectOneMenu id="filterClientName" value="#{accountTransactionBean.filterClient}"
+                                                                 effect="fold" converter="clientConverter"> <!---->
+                                                    <!--f:selectItem itemLabel="#{i18n['client']}"
+                                                                  itemValue="" noSelectionOption="true" itemDisabled="true"/-->
+                                                    <f:selectItems value="#{accountTransactionBean.clients}" var="clientitm"
+                                                                   itemLabel="#{clientitm.clientName}" itemValue="#{clientitm}"/>
+                                                </p:selectOneMenu>
+                                            </div>
+                                            <div class="ui-grid-col-3">
+                                                <!--p:commandButton value="#{i18n['filter']}" icon="ui-icon-check" oncomplete="PF('accountTrTable').filter()"/-->
+                                                <p:commandButton update="@form" actionListener="#{accountTransactionBean.prepareList()}" value="#{i18n['filter']}" process="@parent" icon="ui-icon-refresh" /> <!--oncomplete="PF('accountTrTable').clearFilters()"-->
+                                            </div>
+                                                <!--h:outputText value="{i18n['operations.search.allfields']}"/>
+                                                <p:inputText id="globalFilter"  style="width:150px;"
+                                                             placeholder="{i18n['operations.keyword']}"/--> <!--onkeyup="PF('accountTrTable').filter()"-->
+                                                </div></div>
+                                        </p:outputPanel>
+                                    </f:facet>
+                                    
+                                    <p:column headerText="#{i18n['account.transaction.id']}"
+                                              width="50" style="text-align: center;"> <!--filterBy="#{item.accounttrId}"filterMatchMode="contains"-->
+                                        <h:outputText value="#{item.accounttrId}">
+                                            <f:convertNumber maxFractionDigits="0"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column headerText="#{i18n['account.transaction.date']}" width="90"> <!--filterMatchMode="lte" filterBy="{item.trDate}"-->
+                                        <!--f:facet name="filter">
+                                            <p:calendar id="ftrdate" onchange="PF('accountTrTable').filter()" pattern="dd.MM.yyyy" mask="true"/>
+                                            <<f:converter converterId="javax.faces.Date"/>>
+                                        </f:facet-->
+                                        <h:outputText value="#{item.trDate}">
+                                            <f:convertDateTime pattern="dd.MM.yyyy"/>
+                                        </h:outputText>
+                                    </p:column>
+                                        <p:column headerText="#{i18n['client']} #{i18n['app.source']}" style="text-align: center;">
+                                            <h:outputText value="#{item.accountFrom.clientId.clientName}"/>
+                                        </p:column>
+                                    <p:column headerText="#{i18n['account']} #{i18n['app.source']}" width="70">
+                                        <h:outputText value="#{item.accountFrom.accountCode}" />
+                                    </p:column>
+                                    <p:column headerText="#{i18n['client']} #{i18n['app.receiver']}" style="text-align: center;">
+                                        <h:outputText value="#{item.accountTo.clientId.clientName}"/>
+                                    </p:column>
+                                    <p:column headerText="#{i18n['account']} #{i18n['app.receiver']}" width="70">
+                                        <h:outputText value="#{item.accountTo.accountCode}" />
+                                    </p:column>
+                                    <p:column  headerText="#{i18n['account.transaction.value']}"
+                                               style="text-align: center;" width="90"> <!--filterBy="{item.trValue}" filterFunction="{accountTransactionBean.filterByValue}"-->
+                                        <h:outputText value="#{item.trValue}">
+                                            <f:convertNumber currencySymbol="RUB " type="currency" locale="#{facesContext.viewRoot.locale}"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <!--<p:column headerText="#{i18n['account.invis']}" style="text-align: right;">
+                                        <h:outputText value="#{item.invis}"/>
+                                    </p:column>-->
+                                    <!--p:column headerText="#{i18n['operations']}" width="70" style="text-align: center;">
+                                        <p:commandButton
+                                            id="buttonOperationEdit"
+                                            icon="ui-icon-pencil"
+                                            process="@this"
+                                            update="@form"
+                                            resetValues="true"
+                                            immediate="true">
+                                            <f:setPropertyActionListener target="#{acoountTransactionBean.item}" value="#{item}"/>
+                                            <f:setPropertyActionListener target="#{accountTransactionBean.state}" value="UPDATE"/>
+                                        </p:commandButton>
+                                        <p:commandButton
+                                            id="buttonOperationRemove"
+                                            icon="ui-icon-trash"
+                                            process="@this"
+                                            update="@form"
+                                            immediate="true">
+                                            <f:setPropertyActionListener target="#{accountTransactionBean.item}" value="#{item}"/>
+                                            <f:setPropertyActionListener target="#{accountTransactionBean.state}" value="DELETE"/>
+                                        </p:commandButton>
+                                    </p:column-->
+                                </p:dataTable>
+                            </p:panel>
+                        </div>
+                    </div>
+                </h:panelGroup>
+                <h:panelGroup id="removePanelGroup"
+                              layout="block"
+                              rendered="#{accountTransactionBean.state eq 'DELETE'}"
+                              styleClass="ui-grid ui-grid-responsive">
+                    <div class="ui-grid-row">
+                        <div class="ui-grid-col-12">
+                            <p:panel id="removePanel"
+                                     header="#{i18n['operations.delete']} #{i18n['account.transaction']}">
+                                <div class="ui-grid-form ui-grid ui-grid-responsive">
+                                    <div class="ui-grid-row">
+                                        <div class="ui-grid-col-12">
+                                            <h3>
+                                                <h:outputFormat value="#{i18n['operations.delete.areYouSure']}">
+                                                    <f:param value="#{item.accounttrId} #{item.trDate}"/>
+                                                </h:outputFormat>
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <f:facet name="footer">
+                                    <p:commandButton value="#{i18n['button.cancel']}"
+                                                     icon="ui-icon-close"
+                                                     process="@this"
+                                                     update="@form"
+                                                     immediate="true"
+                                                     styleClass="buttonCancel"
+                                                     style="float: left;">
+                                        <f:setPropertyActionListener target="#{accountTransactionBean.state}" value="READ"/>
+                                    </p:commandButton>
+                                    <p:commandButton id="buttonRemove"
+                                                     value="#{i18n['button.remove']}"
+                                                     action="#{accountTransactionBean.delete}"
+                                                     icon="ui-icon-trash"
+                                                     process="@this"
+                                                     update="@form"
+                                                     style="float: right;">
+                                        <f:setPropertyActionListener target="#{accountTransactionBean.state}" value="READ"/>
+                                    </p:commandButton>
+                                    <div style="clear: both;"></div>
+                                </f:facet>
+                            </p:panel>
+                        </div>
+                    </div>
+                </h:panelGroup>
+            </h:form>
+        </h:panelGroup>
+    </ui:define>
+</ui:composition>
+
+</html>

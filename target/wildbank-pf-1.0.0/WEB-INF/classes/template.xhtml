@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <title style="text-align: center;"><ui:insert name="title">Default Title</ui:insert></title>
+        <h:outputStylesheet library="css" name="index.css"/>
+        <h:outputScript library="js" name="jsfcrud.js"/>
+    </h:head>
+
+    <h:body>
+
+        <p:growl id="growl" life="3000" autoUpdate="true" globalOnly="false" showDetail="false"/>
+
+        <p:layout fullPage="true">
+            <p:layoutUnit position="north" size="65" header="#{i18n['app.name']}">
+                <h:form id="menuForm">
+                    <p:menubar>
+                        <p:menuitem value="#{i18n['app.home']}   " outcome="/index" icon="ui-icon-home"/>
+                        <p:submenu label="  #{i18n['app.maintenance']}">
+                            <p:menuitem value="#{i18n['clients']}" outcome="/client/List.xhtml"/>
+                            <p:menuitem value="#{i18n['accounts']}" outcome="/account/List.xhtml"/>
+                            <p:menuitem value="#{i18n['account.transactions']}" outcome="/accountTransaction/List.xhtml"/>
+                        </p:submenu>
+                        <p:submenu label="#{i18n['app.primefaces']}">
+                            <p:menuitem value="Demo" url="http://www.primefaces.org/showcase-labs/ui/home.jsf" />
+                            <p:menuitem value="Documentation" url="http://www.primefaces.org/documentation.html" />
+                            <p:menuitem value="Forum" url="http://forum.primefaces.org/" />
+                            <p:menuitem value="Themes" url="http://www.primefaces.org/themes.html" />
+                        </p:submenu>
+                    </p:menubar>
+                </h:form>
+            </p:layoutUnit>
+
+            <p:layoutUnit position="south" size="40" >
+                <ui:insert name="footer"/>
+                <p align="left">Alesha Copyright © 2016 All rights reserved.</p>
+            </p:layoutUnit>
+
+            <p:layoutUnit position="center">
+                <ui:insert name="body"/>
+            </p:layoutUnit>
+
+        </p:layout>
+
+    </h:body>
+
+</html>

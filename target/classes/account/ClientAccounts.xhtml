@@ -1,0 +1,271 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+            
+        xmlns:pm="http://primefaces.org/mobile">
+<!--f:metadata>
+    <f:event type="preRenderView" listener="{clientAccountsBean.prepareList()}"/>
+</f:metadata-->
+    
+<ui:composition template="/template.xhtml">
+        <ui:define name="title">
+            <h:outputText value="##{i18n['accounts']}"></h:outputText>
+        </ui:define>
+    <ui:define name="body">
+        <h:panelGroup id="wrapper" layout="block" styleClass="wrapper">
+            <h:form id="ClientAccountsListForm">
+                <p:growl id="msgs" showDetail="true" />
+                <h:panelGroup id="viewPanelGroup" layout="block" rendered="#{clientAccountsBean.state eq 'READ'}" styleClass="ui-grid ui-grid-responsive">
+                    <div class="ui-grid-row">
+                        <div class="ui-grid-col-12">
+                            <p:panel id="viewPanel" header="#{i18n['client']} #{clientAccountsBean.selectedClientId} - #{i18n['accounts']}">
+                                <h:panelGroup layout="block" style="margin: 0 0 0.5em 0;">
+                                    <p:commandButton
+                                        id="buttonNew"
+                                        value="#{i18n['button.new']}"
+                                        action="#{clientAccountsBean.clearItem}"
+                                        icon="ui-icon-plus"
+                                        update="@form"
+                                        resetValues="true" >
+                                        <f:setPropertyActionListener target="#{clientAccountsBean.state}" value="CREATE"/>
+                                    </p:commandButton>
+                                                <p:commandButton id="buttonOperationRemit"
+                                                    value="#{i18n['button.remit']}"
+                                                    icon="ui-icon-circle-triangle-e"
+                                                    update=":AccountTransactionRemitForm" oncomplete="PF('AccountTransactionRemitDialog').show()"
+                                                    actionListener="#{accountRemittanceBean.prepareCreate}"
+                                                    disabled="#{empty clientAccountsBean.selectedAccount}" style="float: right;"> 
+                                                </p:commandButton>
+                                </h:panelGroup>
+                                <p:dataTable var="item" value="#{clientAccountsBean.items}" emptyMessage="#{i18n['account.list.empty']}" 
+                                             id="accounts" widgetVar="accountsTable"
+                                             selectionMode="single" selection="#{clientAccountsBean.selectedAccount}"
+                                             rowKey="#{item.accountId}">
+                                    <p:ajax event="rowSelect"   update="ClientAccountsListForm:buttonOperationRemit"/>
+                                    <p:ajax event="rowUnselect" update="ClientAccountsListForm:buttonOperationRemit"/>
+                                            <p:column headerText="#" width="30" style="text-align: center;">
+                                                <h:outputText value="#{item.accountId}" />
+                                            </p:column>
+                                            <p:column headerText="#{i18n['account.code']}" width="70">
+                                                <h:outputText value="#{item.accountCode}" />
+                                            </p:column>
+                                            <p:column headerText="#{i18n['client']}" >
+                                                <h:outputText value="#{item.clientId.clientName}" />
+                                            </p:column>
+                                            <p:column headerText="#{i18n['account.datebegin']}">
+                                                <h:outputText value="#{item.dateBegin}">
+                                                    <f:convertDateTime pattern="dd.MM.yyyy"/>
+                                                </h:outputText>
+                                            </p:column>
+                                            <p:column headerText="#{i18n['account.dateend']}" style="text-align: center;">
+                                                <h:outputText value="#{item.dateEnd}">
+                                                    <f:convertDateTime pattern="dd.MM.yyyy" />
+                                                </h:outputText>
+                                            </p:column>
+                                            <p:column headerText="#{i18n['account.balance']}" style="text-align: center;">
+                                                <h:outputText value="#{item.balance}" >
+                                                     <f:convertNumber type="currency" currencySymbol="RUB "
+                                                                      pattern="#0.00" currencyCode="RUB"
+                                                                      locale="#{facesContext.viewRoot.locale}" />
+                                                </h:outputText>
+                                            </p:column>
+                                            <p:column headerText="#{i18n['account.transactions']}" width="60" style="text-align: center;">
+                                                <h:outputText value="#{item.numberTransactions}" />
+                                            </p:column>
+                                            <p:column headerText="#{i18n['operations']}" width="90" style="text-align: center;">
+                                               <p:commandButton rendered="#{clientAccountsBean.state eq 'READ'}"
+                                                    id="buttonOperationEdit"
+                                                    icon="ui-icon-pencil"
+                                                    process="@this"
+                                                    update="@form"
+                                                    resetValues="true"
+                                                    immediate="true">
+                                                    <f:setPropertyActionListener target="#{clientAccountsBean.item}" value="#{item}"/>
+                                                    <f:setPropertyActionListener target="#{clientAccountsBean.state}" value="UPDATE"/>
+                                                </p:commandButton>
+                                                <p:commandButton rendered="#{clientAccountsBean.state eq 'READ'}"
+                                                    id="buttonOperationRemove"
+                                                    icon="ui-icon-trash"
+                                                    process="@this"
+                                                    update="@form"
+                                                    immediate="true">
+                                                    <f:setPropertyActionListener target="#{clientAccountsBean.item}" value="#{item}"/>
+                                                    <f:setPropertyActionListener target="#{clientAccountsBean.state}" value="DELETE"/>
+                                                </p:commandButton>
+                                            </p:column>
+                                </p:dataTable>                        
+                            </p:panel>
+                        </div>
+                    </div>
+                </h:panelGroup>
+                <h:panelGroup id="editPanelGroup" layout="block" rendered="#{clientAccountsBean.state eq 'CREATE' or clientAccountsBean.state eq 'UPDATE'}" styleClass="ui-grid ui-grid-responsive">
+                    <div class="ui-grid-row">
+                        <div class="ui-grid-col-12">                        
+                                <p:panel id="editPanel">
+                                    <f:facet name="header">
+                                        <h:outputText value="#{i18n['client']} #{clientAccountsBean.selectedClientId} - #{i18n['operations.create']} #{i18n['account']}"
+                                                      rendered="#{clientAccountsBean.state eq 'CREATE'}"/>
+                                        <h:outputText value="#{i18n['operations.update']} #{i18n['account']}"
+                                                      rendered="#{clientAccountsBean.state eq 'UPDATE'}"/>
+                                    </f:facet>
+                                    <div class="ui-grid-form ui-grid ui-grid-responsive">
+                                        <div class="ui-grid-row">
+                                            <div class="ui-grid-col-3">
+                                                <p:outputLabel for="client" value="#{i18n['client']}" />
+                                                <p:selectOneMenu id="client" value="#{clientAccountsBean.item.clientId}"
+                                                                 effect="fold" editable="false"
+                                                                 required="true" converter="clientConverter">
+                                                    <f:selectItem itemLabel="#{clientAccountsBean.activeClient.item.clientName}"
+                                                                  itemValue="#{clientAccountsBean.activeClient.item}" />
+                                                    <!--<f:selectItems value="{clientAccountsBean.activeClient.items}" var="client"
+                                                                   itemLabel="{client.clientName}" itemValue="{client}"/>-->
+                                                </p:selectOneMenu>
+                                            </div>
+                                            <div class="ui-grid-col-3">
+                                                <p:outputLabel for="codeInput" value="#{i18n['account.code']}"/>
+                                                <p:inputMask id="codeInput" required="true" 
+                                                             value="#{clientAccountsBean.item.accountCode}"
+                                                             maxlength="10" mask="9999999999" >
+                                                    <f:validateLength minimum="10" maximum="10"/>
+                                                    <!--f:validateRegex pattern="/[\d\-\.]/"/-->
+                                                </p:inputMask>
+                                            </div>
+                                            <div class="ui-grid-col-3">
+                                                <p:outputLabel for="datebeginInput" value="#{i18n['account.datebegin']}"/>
+                                                <p:calendar id="datebeginInput" value="#{clientAccountsBean.item.dateBegin}"
+                                                            mindate="#{clientAccountsBean.nowDate}" pattern="dd.MM.yyyy" 
+                                                            required="true" requiredMessage="#{i18n['message.startdate']}"
+                                                            showOn="button" binding="#{dateBeginInput}" locale="#{i18n['app.locale']}"
+                                                            readonly="#{clientAccountsBean.state eq 'UPDATE' and clientAccountsBean.haveTransactions()}">
+                                                    <f:convertDateTime pattern="dd.MM.yyyy"/>
+                                                    <f:attribute name="endDate" value="#{dateEndInput.value}" />
+                                                    <p:ajax event="dateSelect" update="dateendInput" />
+                                                    <f:validator validatorId="validator.dateRangeValidatorStart" />
+                                                    <p:ajax event="dateSelect" listener="#{clientAccountsBean.beginDateSelect}" update="dateBeginMsg"/>
+                                                    <f:ajax event="change" listener="#{clientAccountsBean.beginDateFilter}" execute="@this"/>
+                                                </p:calendar>
+                                                <p:message for="datebeginInput" id="dateBeginMsg"/>
+                                            </div>
+                                            <div class="ui-grid-col-3">
+                                                <p:outputLabel for="dateendInput" value="#{i18n['account.dateend']}"/>
+                                                <p:calendar id="dateendInput" value="#{clientAccountsBean.item.dateEnd}" pattern="dd.MM.yyyy"
+                                                            showOn="button" binding="#{dateEndInput}" locale="#{i18n['app.locale']}">
+                                                    <f:convertDateTime pattern="dd.MM.yyyy"/>
+                                                    <f:attribute name="beginDate" value="#{dateBeginInput.value}" />
+                                                    <f:validator validatorId="validator.dateRangeValidatorEnd" />
+                                                    <p:ajax event="dateSelect" listener="#{clientAccountsBean.endDateSelect}" update="dateEndMsg"/>
+                                                    <p:ajax event="change" listener="#{clientAccountsBean.endDateFilter}" update="dateEndMsg"/>
+                                                </p:calendar>
+                                                <p:message for="dateendInput" id="dateEndMsg"/>
+                                            </div>
+                                            <div class="ui-grid-col-3">
+                                                <p:outputLabel for="balanceInput" value="#{i18n['account.balance']}"/>
+                                                <p:inputText id="balanceInput" required="true" requiredMessage="#{i18n['message.value']}"
+                                                             value="#{clientAccountsBean.item.balance}" readonly="#{clientAccountsBean.state eq 'UPDATE' and clientAccountsBean.haveTransactions()}">
+                                                    <f:validateDoubleRange minimum="0"/>
+                                                    <f:convertNumber type="currency" currencySymbol="RUB "
+                                                                     pattern="#0.00" currencyCode="RUB"
+                                                                     locale="#{facesContext.viewRoot.locale}"/>
+                                                </p:inputText>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <f:facet name="footer">
+                                        <p:commandButton id="buttonCancel"
+                                                         value="#{i18n['button.cancel']}"
+                                                         icon="ui-icon-close"
+                                                         rendered="#{clientAccountsBean.state eq 'CREATE' or clientAccountsBean.state eq 'UPDATE'}"
+                                                         process="@this"
+                                                         update="@form"
+                                                         immediate="true"
+                                                         styleClass="buttonCancel"
+                                                         style="float: left;">
+                                            <f:setPropertyActionListener target="#{clientAccountsBean.state}" value="READ"/>
+                                        </p:commandButton>
+                                        <p:commandButton id="buttonState"
+                                                         value="#{i18n['button.save']}"
+                                                         action="#{clientAccountsBean.create}"
+                                                         icon="ui-icon-check"
+                                                         rendered="#{clientAccountsBean.state eq 'CREATE'}"
+                                                         process="@form"
+                                                         update="@form"
+                                                         style="float: right;"
+                                                         ajax="false"  validateClient="true">
+                                            <!--<f:setPropertyActionListener target="{clientAccountsBean.item.clientId}" value="{clientAccountsBean.activeClient.item}"/>-->
+                                            <f:setPropertyActionListener target="#{clientAccountsBean.state}" value="READ"/>
+                                        </p:commandButton>
+                                        <p:commandButton id="buttonUpdate"
+                                                         value="#{i18n['button.update']}"
+                                                         action="#{clientAccountsBean.update}"
+                                                         icon="ui-icon-check"
+                                                         rendered="#{clientAccountsBean.state eq 'UPDATE'}"
+                                                         process="@form"
+                                                         update="@form"
+                                                         style="float: right;">
+                                            <f:setPropertyActionListener target="#{clientAccountsBean.state}" value="READ"/>
+                                        </p:commandButton>
+                                        <p:defaultCommand target="#{(clientAccountsBean.item.accountId eq null) ? 'buttonState' : 'buttonUpdate'}"/>
+                                        <div style="clear: both;"></div>
+                                    </f:facet>
+                                </p:panel>
+                        </div>
+                    </div>
+                </h:panelGroup>
+                <h:panelGroup id="removePanelGroup"
+                              layout="block"
+                              rendered="#{clientAccountsBean.state eq 'DELETE'}"
+                              styleClass="ui-grid ui-grid-responsive">
+                    <div class="ui-grid-row">
+                        <div class="ui-grid-col-12">
+                            <p:panel id="removePanel"
+                                     header="#{i18n['operations.delete']} #{i18n['account']}">
+                                <div class="ui-grid-form ui-grid ui-grid-responsive">
+                                    <div class="ui-grid-row">
+                                        <div class="ui-grid-col-12">
+                                            <h3>
+                                                <h:outputFormat value="#{i18n['operations.delete.areYouSure']}">
+                                                    <f:param value="#{clientAccountsBean.item.accountCode}"/>
+                                                </h:outputFormat>
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <f:facet name="footer">
+                                    <p:commandButton value="#{i18n['button.cancel']}"
+                                                     icon="ui-icon-close"
+                                                     process="@this"
+                                                     update="@form"
+                                                     immediate="true"
+                                                     styleClass="buttonCancel"
+                                                     style="float: left;">
+                                        <f:setPropertyActionListener target="#{clientAccountsBean.state}" value="READ"/>
+                                    </p:commandButton>
+                                    <p:commandButton id="buttonRemove"
+                                                     value="#{i18n['button.remove']}"
+                                                     action="#{clientAccountsBean.delete}"
+                                                     icon="ui-icon-trash"
+                                                     process="@this"
+                                                     update="@form"
+                                                     style="float: right;">
+                                        <f:setPropertyActionListener target="#{clientAccountsBean.state}" value="READ"/>
+                                    </p:commandButton>
+                                    <div style="clear: both;"></div>
+                                </f:facet>
+                            </p:panel>
+                        </div>
+                    </div>
+                </h:panelGroup>
+
+            </h:form>
+        </h:panelGroup>
+        <ui:include src="CreateRemit.xhtml"/>
+    </ui:define>
+</ui:composition>
+
+</html>
